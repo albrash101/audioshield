@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AudioShield Panel</title>
+  <style>
+  body { font-family: Arial, sans-serif; padding: 20px; background: #000; color: #fff; }
+    button { margin: 5px; padding: 10px 15px; font-size: 14px; border: none; border-radius: 6px; cursor: pointer; }
+    #startBtn, #exportBtn, #setKeyBtn { background-color: #2ecc71; color: #000; }
+    #stopBtn, #clearBtn { background-color: #e74c3c; color: #fff; }
+    #transcript { white-space: pre-wrap; background: #111; padding: 10px; border: 1px solid #444; height: 250px; overflow-y: auto; margin-top: 12px; }
+    input[type="password"], input[type="text"] { margin: 5px; padding: 8px; font-size: 14px; background: #111; color: #fff; border: 1px solid #444; width: 300px; }
+  </style>
+</head>
+<body>
+  <h2>AudioShield Transcription Panel</h2>
+
+  <input type="password" id="password" placeholder="Enter password" />
+  <input type="text" id="saltHex" placeholder="Enter salt hex" />
+  <button id="setKeyBtn">Set Encryption Key</button>
+  <br />
+
+  <button id="startBtn">Start Listening</button>
+  <button id="stopBtn" disabled>Stop Listening</button>
+  <button id="clearBtn">Clear Transcript</button>
+  <button id="exportBtn">Export Encrypted Transcript</button>
+
+  <div id="status">Status: Not started</div>
+  <div id="transcript"></div>
+  <script src="panel.js"></script>
+</body>
+</html>

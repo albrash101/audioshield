@@ -1,0 +1,26 @@
+{
+  "name": "AudioShield",
+  "description": "Real-time encrypted speech transcription",
+  "version": "0.4.1",
+  "manifest_version": 3,
+  "permissions": [
+    "microphone",
+    "scripting",
+    "storage",
+    "activeTab",
+    "tabs",
+    "windows"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["whisper.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
