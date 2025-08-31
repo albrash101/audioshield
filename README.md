@@ -1,4 +1,7 @@
 📘 README: AudioShield + Decryptor
+git add README.md
+git commit -m "Add GitHub badge"
+git push origin master
 🎧 AudioShield — Real-Time Transcription with Encryption
 AudioShield is a lightweight browser extension that transcribes spoken audio in real time using the Web Speech API, then encrypts and stores the transcript securely using the JavaScript Crypto API. Designed for privacy-conscious users, it ensures that sensitive spoken content is protected from unauthorized access.
 
