@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>AudioShield Decryptor – Word Export</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+    }
+    textarea, input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 8px;
+      background-color: #111;
+      color: #fff;
+      border: 1px solid #444;
+      font-family: monospace;
+    }
+    button {
+      padding: 10px 14px;
+      margin: 6px 4px;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #decryptBtn, #exportBtn, #loadBtn {
+      background-color: #2ecc71;
+      color: #000;
+    }
+    #clearBtn {
+      background-color: #e74c3c;
+      color: #fff;
+    }
+    #output {
+      white-space: pre-wrap;
+      background-color: #111;
+      padding: 12px;
+      border: 1px solid #444;
+      margin-top: 12px;
+      min-height: 300px;
+    }
+  </style>
+</head>
+<body>
+  <h2>AudioShield Decryptor – Word Export</h2>
+
+  <label>Load exported file (JSON):</label>
+  <input type="file" id="fileInput" accept=".json" />
+  <button id="loadBtn">Load</button>
+
+  <label>Exported JSON (paste here):</label>
+  <textarea id="inputJson" placeholder='[{"ts":123456789000,"enc":"BASE64","ivHex":"hex"}]'></textarea>
+
+  <label>Password (PBKDF2):</label>
+  <input type="password" id="pwd" placeholder="Enter password..." />
+
+  <label>Salt hex (AudioShield-salt):</label>
+  <input type="text" id="saltHex" placeholder="Hex salt used during encryption..." />
+
+  <button id="decryptBtn">Decrypt</button>
+  <button id="exportBtn">Export to Word (.doc)</button>
+  <button id="clearBtn">Clear</button>
+
+  <div id="output"></div>
+
+  <script>
+    function hexToBytes(hex) {
+      if (!hex || hex.length % 2 !== 0) return null;
+      const bytes = new Uint8Array(hex.length / 2);
+      for (let i = 0; i < hex.length; i += 2) {
+        bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+      }
+      return bytes;
+    }
+
+    async function deriveKey(password, saltBytes) {
+      const baseKey = await crypto.subtle.importKey(
+        "raw", new TextEncoder().encode(password),
+        { name: "PBKDF2" }, false, ["deriveKey"]
+      );
+      return crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt: saltBytes, iterations: 100000, hash: "SHA-256" },
+        baseKey,
+        { name: "AES-GCM", length: 128 },
+        false, ["decrypt"]
+      );
+    }
+
+    async function decryptEntry(encBase64, ivHex, key) {
+      const iv = new Uint8Array(ivHex.match(/.{1,2}/g).map(h => parseInt(h, 16)));
+      const ct = new Uint8Array(atob(encBase64).split("").map(ch => ch.charCodeAt(0)));
+      const plainBuf = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ct);
+      return new TextDecoder().decode(plainBuf);
+    }
+
+    document.getElementById('loadBtn').onclick = () => {
+      const file = document.getElementById('fileInput').files[0];
+      if (!file) return alert("Please select a file.");
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('inputJson').value = e.target.result;
+      };
+      reader.readAsText(file);
+    };
+
+    document.getElementById('decryptBtn').onclick = async () => {
+      const jsonText = document.getElementById('inputJson').value;
+      const password = document.getElementById('pwd').value;
+      const saltHex = document.getElementById('saltHex').value.trim();
+      const output = document.getElementById('output');
+      output.textContent = "";
+
+      if (!jsonText || !password || !saltHex) {
+        output.textContent = "Please fill in all required fields.";
+        return;
+      }
+
+      let entries;
+      try {
+        entries = JSON.parse(jsonText);
+      } catch (e) {
+        output.textContent = "JSON parse error: " + e.message;
+        return;
+      }
+
+      const saltBytes = hexToBytes(saltHex);
+      if (!saltBytes) {
+        output.textContent = "Invalid salt hex.";
+        return;
+      }
+
+      const key = await deriveKey(password, saltBytes);
+
+      const tasks = entries.map(async (e) => {
+        try {
+          const text = await decryptEntry(e.enc, e.ivHex, key);
+          return { ts: e.ts || Date.now(), text: text.trim().replace(/\s+/g, ' ') };
+        } catch {
+          return { ts: e.ts || Date.now(), text: "[decryption failed]" };
+        }
+      });
+
+      const results = await Promise.all(tasks);
+      results.sort((a, b) => a.ts - b.ts);
+
+      const lines = [];
+      let lastDate = null;
+      let lastHour = null;
+      let paragraph = [];
+
+      for (const r of results) {
+        const d = new Date(r.ts);
+        const dateStr = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth()+1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+        const hourStr = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+
+        if (lastDate !== dateStr || Math.abs(d.getHours() - lastHour) >= 1) {
+          if (paragraph.length > 0) {
+            lines.push(paragraph.join(''));
+            lines.push("");
+            paragraph = [];
+          }
+          lines.push(`Date: ${dateStr}`);
+          lines.push(`Time: ${hourStr}`);
+          lines.push("");
+          lastDate = dateStr;
+          lastHour = d.getHours();
+        }
+
+        paragraph.push(r.text);
+      }
+
+      if (paragraph.length > 0) {
+        lines.push(paragraph.join(''));
+      }
+
+      output.textContent = lines.join("\n\n");
+      window.decryptedResults = lines;
+    };
+
+    document.getElementById('exportBtn').onclick = () => {
+      const content = window.decryptedResults ? window.decryptedResults.join("\n\n") : "";
+      const blob = new Blob([content], { type: "application/msword" });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'AudioShield_decrypted.doc';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    };
+
+    document.getElementById('clearBtn').onclick = () => {
+      document.getElementById('inputJson').value = "";
+      document.getElementById('pwd').value = "";
+      document.getElementById('saltHex').value = "";
+      document.getElementById('output').textContent = "";
+      window.decryptedResults = [];
+    };
+  </script>
+</body>
+</html>
