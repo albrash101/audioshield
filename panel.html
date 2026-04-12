@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AudioShield Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="panel-body">
+  <header class="panel-header">
+    <h1>AudioShield</h1>
+    <p class="subtitle">Secure offline speech transcription and decryption</p>
+  </header>
+  <nav class="tablist" role="tablist" aria-label="AudioShield modes">
+    <button id="tab-transcribe" class="tab active" role="tab" aria-selected="true" aria-controls="panel-transcribe" tabindex="0">Transcribe</button>
+    <button id="tab-decrypt" class="tab" role="tab" aria-selected="false" aria-controls="panel-decrypt" tabindex="-1">Decryptor</button>
+  </nav>
+  <main class="panel-main">
+    <section id="panel-transcribe" class="tabpanel active" role="tabpanel" aria-labelledby="tab-transcribe">
+      <section class="card">
+        <h2>Encryption Setup</h2>
+        <label class="field-label" for="tx-password">Password</label>
+        <input id="tx-password" class="field-input" type="password" autocomplete="off">
+        <button id="tx-set-key" class="btn primary" type="button">Set Encryption Key</button>
+        <div class="field-row">
+          <label class="field-label" for="tx-salt">Salt Hex</label>
+          <input id="tx-salt" class="field-input" type="text" readonly>
+          <button id="tx-copy-salt" class="btn secondary" type="button">Copy Salt</button>
+        </div>
+      </section>
+      <section class="card">
+        <h2>Live Transcription</h2>
+        <div class="controls-row">
+          <label class="field-label" for="tx-high-sensitivity">High sensitivity mode</label>
+          <input id="tx-high-sensitivity" type="checkbox" aria-label="High sensitivity mode">
+        </div>
+        <div class="controls-row">
+          <button id="tx-start" class="btn primary" type="button">Start Listening</button>
+          <button id="tx-stop" class="btn danger" type="button" disabled>Stop Listening</button>
+        </div>
+        <div id="tx-status" class="status-text" aria-live="polite"></div>
+        <div class="transcript-wrapper" aria-label="Transcript" role="region">
+          <pre id="tx-transcript" class="transcript" tabindex="0"></pre>
+        </div>
+      </section>
+      <section class="card">
+        <h2>Actions</h2>
+        <div class="controls-row">
+          <button id="tx-clear" class="btn secondary" type="button">Clear</button>
+          <button id="tx-export-encrypted" class="btn primary" type="button" disabled>Export Encrypted Transcript</button>
+        </div>
+      </section>
+    </section>
+    <section id="panel-decrypt" class="tabpanel" role="tabpanel" aria-labelledby="tab-decrypt" hidden>
+      <section class="card">
+        <h2>Decryption Setup</h2>
+        <label class="field-label" for="dec-password">Password</label>
+        <input id="dec-password" class="field-input" type="password" autocomplete="off">
+        <label class="field-label" for="dec-salt">Salt Hex</label>
+        <input id="dec-salt" class="field-input" type="text" autocomplete="off">
+        <button id="dec-load-file" class="btn secondary" type="button">Load Encrypted Transcript File</button>
+      </section>
+      <section class="card">
+        <h2>Decrypt</h2>
+        <div class="controls-row">
+          <button id="dec-decrypt" class="btn primary" type="button">Decrypt Transcript</button>
+          <button id="dec-clear" class="btn secondary" type="button">Clear</button>
+        </div>
+        <div id="dec-status" class="status-text" aria-live="polite"></div>
+        <div class="transcript-wrapper" aria-label="Decrypted transcript" role="region">
+          <div id="dec-transcript" class="transcript" tabindex="0"></div>
+        </div>
+      </section>
+      <section class="card">
+        <h2>Export</h2>
+        <div class="controls-row">
+          <button id="dec-export-rtf" class="btn primary" type="button" disabled>Export decypted transcript</button>
+          <button id="dec-export-encrypted" class="btn secondary" type="button" disabled>Export encrypted transcript</button>
+        </div>
+      </section>
+    </section>
+  </main>
+  <input id="hidden-file-input" type="file" accept=".audioshield,.enc,application/json" style="display:none">
+  <script type="module" src="panel.js"></script>
+</body>
+</html>
+ 

@@ -1,0 +1,37 @@
+rules:
+  # Rule 1: Inline scripts in HTML
+  - id: html-inline-script
+    pattern: |
+      <script>
+        ...
+      </script>
+    message: "Inline JavaScript in HTML is dangerous; move it to an external file."
+    severity: ERROR
+    languages: [html]
+  # Rule 2: Dangerous eval() usage in JS
+  - id: js-avoid-eval
+    pattern: eval(...)
+    message: "Avoid using eval(), it can lead to code injection vulnerabilities."
+    severity: ERROR
+    languages: [js]
+
+  # Rule 3: Dangerous innerHTML usage in JS
+  - id: js-avoid-innerhtml
+    pattern: $OBJ.innerHTML = ...
+    message: "Avoid using innerHTML directly; it may allow XSS vulnerabilities."
+    severity: WARNING
+    languages: [js]
+
+  # Rule 4: Dangerous document.write() in JS
+  - id: js-avoid-document-write
+    pattern: document.write(...)
+    message: "Avoid using document.write(); it can lead to security issues."
+    severity: WARNING
+    languages: [js]
+
+  # Rule 5: Hardcoded credentials in JSON
+  - id: json-hardcoded-secret
+    pattern-regex: '("password"\s*:\s*".+"| "api[_-]?key"\s*:\s*".+")'
+    message: "Hardcoded secret found in JSON. Store credentials securely."
+    severity: ERROR
+    languages: [json]

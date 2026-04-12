@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "AudioShield",
+  "version": "1.0.0",
+  "description": "Secure, noise-tolerant speech-to-text transcription and decryption.",
+  "action": {
+    "default_title": "AudioShield",
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "storage",
+    "downloads"
+  ],
+  "host_permissions": [],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
